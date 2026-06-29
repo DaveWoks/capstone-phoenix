@@ -18,15 +18,19 @@ spec:
       labels:
         app: frontend
     spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: frontend
       containers:
         - name: frontend
-          image: ghcr.io/ts-a-devops/taskapp-frontend:latest
+          image: ghcr.io/ts-a-devops/taskapp-frontend:69432e1
           imagePullPolicy: Always
           ports:
             - containerPort: 80
-          envFrom:
-            - configMapRef:
-                name: taskapp-config
           readinessProbe:
             httpGet:
               path: /

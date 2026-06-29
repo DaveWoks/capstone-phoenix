@@ -1,0 +1,7 @@
+ id | username 
+----+----------
+  1 | admin
+  2 | user
+(2 rows)
+
+postgres-0 pod was deleted and recreated. Data survived.

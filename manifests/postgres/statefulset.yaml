@@ -44,6 +44,8 @@ spec:
                 - pg_isready
                 - -U
                 - taskuser
+                - -d
+                - taskmanager
             initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
@@ -52,6 +54,8 @@ spec:
                 - pg_isready
                 - -U
                 - taskuser
+                - -d
+                - taskmanager
             initialDelaySeconds: 30
             periodSeconds: 20
           resources:

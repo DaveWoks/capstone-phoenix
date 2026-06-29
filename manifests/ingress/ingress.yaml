@@ -9,10 +9,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - taskapp.yourdomain.com
+        - taskapp.34.255.116.97.nip.io
       secretName: taskapp-tls
   rules:
-    - host: taskapp.yourdomain.com
+    - host: taskapp.34.255.116.97.nip.io
       http:
         paths:
           - path: /
@@ -29,4 +29,3 @@ spec:
                 name: backend
                 port:
                   number: 5000
-                  
