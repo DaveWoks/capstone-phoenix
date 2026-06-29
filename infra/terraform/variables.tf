@@ -38,7 +38,7 @@ variable "ssh_cidr" {
 }
 
 variable "instance_type" {
-  default = "t4g.micro"
+  default = "t3.small"
 }
 
 variable "key_name" {

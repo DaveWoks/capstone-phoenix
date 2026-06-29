@@ -1,0 +1,88 @@
+---
+- name: Install k3s server on control plane
+  hosts: k3s_master
+  become: true
+  tasks:
+    - name: Check if k3s is already installed
+      stat:
+        path: /usr/local/bin/k3s
+      register: k3s_binary
+
+    - name: Install k3s server
+      shell: |
+        curl -sfL https://get.k3s.io | \
+          INSTALL_K3S_EXEC="server --tls-san {{ ansible_host }} --tls-san {{ ansible_default_ipv4.address }}" \
+          sh -
+      when: not k3s_binary.stat.exists
+
+    - name: Ensure k3s service is started and enabled
+      systemd:
+        name: k3s
+        state: started
+        enabled: true
+
+    - name: Wait for node-token to be generated
+      wait_for:
+        path: /var/lib/rancher/k3s/server/node-token
+        state: present
+        timeout: 60
+
+    - name: Read k3s node token
+      slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: k3s_node_token_raw
+
+    - name: Set token as fact
+      set_fact:
+        k3s_token: "{{ k3s_node_token_raw.content | b64decode | trim }}"
+
+    - name: Set private IP as fact
+      set_fact:
+        k3s_private_ip: "{{ ansible_default_ipv4.address }}"
+
+- name: Install k3s agents on workers
+  hosts: k3s_workers
+  become: true
+  vars:
+    k3s_server_url: "https://{{ hostvars[groups['k3s_master'][0]]['k3s_private_ip'] }}:6443"
+    k3s_token: "{{ hostvars[groups['k3s_master'][0]]['k3s_token'] }}"
+    ansible_ssh_common_args: '-o ServerAliveInterval=60 -o ServerAliveCountMax=10 -o ConnectTimeout=30'
+
+  tasks:
+    - name: Uninstall previous k3s-agent if present
+      shell: /usr/local/bin/k3s-agent-uninstall.sh
+      args:
+        removes: /usr/local/bin/k3s-agent-uninstall.sh
+
+    - name: Install k3s agent
+      shell: |
+        curl -sfL https://get.k3s.io | \
+          K3S_URL="{{ k3s_server_url }}" \
+          K3S_TOKEN="{{ k3s_token }}" \
+          sh -
+      async: 300
+      poll: 15
+
+    - name: Ensure k3s-agent service is started and enabled
+      systemd:
+        name: k3s-agent
+        state: started
+        enabled: true
+
+
+
+# - name: Install k3s Workers
+#   hosts: k3s_workers
+#   become: true
+#
+#   tasks:
+#     - name: Install k3s agent
+#       shell: |
+#         curl -sfL https://get.k3s.io | \
+#           K3S_URL=https://10.0.1.165:6443 \
+#           K3S_TOKEN="REDACTED_TOKEN" \
+#           sh -
+#       args:
+#         creates: /usr/local/bin/k3s-agent
+
+    

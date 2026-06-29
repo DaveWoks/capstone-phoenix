@@ -1,3 +1,4 @@
+cat > terraform.tfvars << 'EOF'
 aws_region   = "eu-west-1"
 project_name = "phoenix"
 
@@ -15,5 +16,6 @@ public_subnet_cidrs = [
   "10.0.3.0/24"
 ]
 
-ssh_cidr = "102.91.135.132/32"
-
+ssh_cidr      = "YOUR_IP/32"
+instance_type = "t3.small"
+EOF
