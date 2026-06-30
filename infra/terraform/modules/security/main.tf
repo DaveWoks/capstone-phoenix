@@ -78,12 +78,5 @@ resource "aws_vpc_security_group_ingress_rule" "wireguard" {
   cidr_ipv4         = "10.0.0.0/16"
 }
 
-resource "aws_vpc_security_group_ingress_rule" "k8s_api_admin" {
-  security_group_id = aws_security_group.k3s.id
-  description       = "Kubernetes API admin access from admin IP"
-  from_port         = 6443
-  to_port           = 6443
-  ip_protocol       = "tcp"
-  cidr_ipv4         = "102.91.135.234/32"
-}
+
 
