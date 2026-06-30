@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: seed-users
+  namespace: taskapp
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: seed-users
+          image: ghcr.io/ts-a-devops/taskapp-backend:5d6b8fc
+          command:
+            - python3
+            - -c
+            - |
+              from app import create_app, db
+              from app.models import User
+              from werkzeug.security import generate_password_hash
+
+              app = create_app()
+              with app.app_context():
+                  if User.query.count() == 0:
+                      users = [
+                          User(username='admin', password_hash=generate_password_hash('admin123')),
+                          User(username='user', password_hash=generate_password_hash('user123')),
+                      ]
+                      for u in users:
+                          db.session.add(u)
+                      db.session.commit()
+                      print('Users seeded successfully')
+                  else:
+                      print('Users already exist, skipping seed')
+          envFrom:
+            - configMapRef:
+                name: taskapp-config
+            - secretRef:
+                name: taskapp-secret
